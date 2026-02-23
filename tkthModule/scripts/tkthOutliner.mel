@@ -1,0 +1,8 @@
+global proc  tkthOutliner()
+{
+  string  $line[] = {
+    "import tkthOutliner.core",
+    "obj = tkthOutliner.core.mainWindow()"
+  };
+  python(stringArrayToString($line, "\n"));
+}
