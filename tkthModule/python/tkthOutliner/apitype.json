@@ -3,6 +3,7 @@
   [ "kBlendNodeBase", 1021  ],
   [
     "kEtc", [
+      ["kTime", 520],
       ["kScript", 640],
       ["kResolution", 526],
       ["kTweak", 345],
@@ -45,7 +46,8 @@
       ["kClampColor", 39], 
       ["kMatrixWtAdd", 398],
       ["kMultDoubleLinear", 775],
-      ["kNegate", 1180]
+      ["kNegate", 1180],
+      ["kPairBlend", 928]
     ]
   ],
   [

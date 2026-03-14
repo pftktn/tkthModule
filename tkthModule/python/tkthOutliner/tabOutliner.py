@@ -167,6 +167,26 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
     
     return fldItm
 
+  def insertTopLevelItemBySorted(self, inItm, startIndex=0) : 
+    itmNm = inItm.itemName
+    chCnt = self.topLevelItemCount()
+    chIdx = startIndex
+    while chIdx < chCnt : 
+      try : 
+        chItm = self.topLevelItem(chIdx)
+        chItmNm = chItm.itemName
+        if chItmNm[0] == u'<' and chItmNm[-1] == u'>' : continue
+        if inItm.itemType < chItm.itemType : 
+          self.insertTopLevelItem(chIdx, inItm)
+          return chIdx
+        if inItm.itemType == chItm.itemType and itmNm < chItmNm : 
+          self.insertTopLevelItem(chIdx, inItm)
+          return chIdx
+      finally : 
+        chIdx = chIdx + 1
+    self.addTopLevelItem(inItm)
+    return chCnt
+
   def addTopLevelItem(self, item) :
     self.addUUIDTable(item)
     return super().addTopLevelItem(item)
@@ -236,36 +256,39 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
         for subApTp in apTp[1] : 
           subApTp.append(None)
   
-  def addMObjectFolderItem(self, inMObjFldItm) : 
+  def addMObjectFolderItem(self, inMObjFldItm, inMObj) : 
+    if inMObj is None : 
+      self.__apiTypeFolderList.append([ inMObjFldItm.text(0), inMObjFldItm.mfnType, inMObjFldItm ])
+      self.insertTopLevelItemBySorted(inMObjFldItm)
+      return
     added = False
-    mobj = inMObjFldItm.getFirstMObject()
     for apTp in self.__apiTypeFolderList : 
       if type(apTp[1]) == list : 
         for subApTp in apTp[1] : 
-          if mobj.hasFn(subApTp[1]) : 
+          if inMObj.hasFn(subApTp[1]) : 
             if apTp[2] is None : 
               mfnTpLst = list()
               for tmp in apTp[1] : mfnTpLst.append(tmp[1])
               itm = item.itemMObjectFolder(apTp[0], mfnTypeList=mfnTpLst)
               apTp[2] = itm
-              self.addTopLevelItem(itm)
+              self.insertTopLevelItemBySorted(itm)
             added = True
             apTp[2].addChild(inMObjFldItm)
             subApTp[2] = inMObjFldItm
             break
       else : 
-        if mobj.hasFn(apTp[1]) : 
+        if inMObj.hasFn(apTp[1]) : 
           if apTp[2] is None : 
             itm = item.itemMObjectFolder(apTp[0], mfnType=apTp[1])
             apTp[2] = itm
-            self.addTopLevelItem(itm)
+            self.insertTopLevelItemBySorted(itm)
           added = True
           apTp[2].addChild(inMObjFldItm)
       if added : break
     if added == False :
-      self.__apiTypeFolderList.append([ inMObjFldItm.text(0), mobj.apiType(), inMObjFldItm ])
-      self.addTopLevelItem(inMObjFldItm)
-  
+      self.__apiTypeFolderList.append([ inMObjFldItm.text(0), inMObj.apiType(), inMObjFldItm ])
+      self.insertTopLevelItemBySorted(inMObjFldItm)
+
   __itemList = None
   __itemIndex = None
   def addNext(self, inItm) : 
@@ -302,42 +325,6 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
     self.clear()
     self.loadAPITypeFolderList()
     ( dgpLst, mobjDct ) = self.getAll()
-    dgpCnt = len(dgpLst)
-    for idx, dgpItm in enumerate(dgpLst) : 
-      dgp = dgpItm[0]
-      itm = dgpItm[1]
-      if dgp.length() == 1 : 
-        self.addTopLevelItem(itm)
-      else : 
-        prtDgp = OpenMaya.MDagPath(dgp)
-        prtDgp.pop()
-        prtItm = None
-        prtIdx = idx - 1
-        while prtIdx >= 0 : 
-          if prtDgp == dgpLst[prtIdx][0] : 
-            prtItm = dgpLst[prtIdx][1]
-            break
-          prtIdx = prtIdx - 1
-        if prtItm is None : 
-          prtIdx = idx + 1
-          while prtIdx < dgpCnt : 
-            if prtDgp == dgpLst[prtIdx][0] : 
-              prtItm = dgpLst[prtIdx][1]
-              break
-            prtIdx = prtIdx + 1
-        
-        if prtItm is None :
-          logMessage(self.parent(), u'not found parent:' + prtDgp.fullPathName())
-          self.addTopLevelItem(itm)
-        else : 
-          if dgp.node().hasFn(OpenMaya.MFn.kTransform) : 
-            prtItm.addChild(itm)
-          else : 
-            prtItm.addShape(itm)
-
-    kLst = list(mobjDct.keys())
-    kLst.sort()
-    for k in kLst : self.addMObjectFolderItem(mobjDct[k])
     self.applyExpandedList()
 
 
@@ -354,68 +341,60 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
           fn = OpenMaya.MFnDagNode(mobj)
           dgp = fn.getPath()
           if dgp.length() == 0 : continue
-          itm = item.itemMDagPath(dgp, fnRefList=fnRefList)
-          dgpLst.append([dgp, itm])
+          self.addMDagPath(dgp, fnRefList=fnRefList, checkExists=False)
+          # itm = item.itemMDagPath(dgp, fnRefList=fnRefList)
+          # dgpLst.append([dgp, itm])
         except : 
-          apiTp = mobj.apiType()
-          if apiTp not in mobjDct : 
-            dctItm = item.itemMObjectFolder(mobj.apiTypeStr, mfnType=mobj.apiType())
-            mobjDct[apiTp] = dctItm
-          else : 
-            dctItm = mobjDct[apiTp]
-          itm = item.itemMObject(mobj, fnRefList=fnRefList)
-          if apiTp == OpenMaya.MFn.kPluginDependNode : 
-            fn = OpenMaya.MFnDependencyNode(mobj)
-            subDcItm = dctItm.findChildByName(fn.typeName, itemType=item.itemBase.enMObjectFolder)
-            if subDcItm is None : 
-              subDcItm = item.itemMObjectFolder(fn.typeName, typeId=fn.typeId)
-              dctItm.addChild(subDcItm)
-            subDcItm.addChild(itm)
-          else : 
-            dctItm.addChild(itm)
+          self.addMObject(mobj, fnRefList=fnRefList, checkExists=False)
       finally : 
         itr.next()
 
     return ( dgpLst, mobjDct )
 
-  def addMDagPath(self, inDgp, fnRefList=None) : 
+  def addMDagPath(self, inDgp, fnRefList=None, checkExists=True) : 
     fn = OpenMaya.MFnDagNode(inDgp)
     '''
     if self.topLevelItemCount() == 0 : return None
     itm = self.topLevelItem(0)
     mdgpItm = itm.findMDagPath(inDgp)
     '''
-    mdgpItm = self.findByUUID(UniqueMayaUUID(fn, fnRefList=fnRefList))
-    if mdgpItm is not None : 
-      self.updateItem_MDagPath(mdgpItm)
-      return mdgpItm
+    if checkExists : 
+      mdgpItm = self.findByUUID(UniqueMayaUUID(fn, fnRefList=fnRefList))
+      if mdgpItm is not None : 
+        self.updateItem_MDagPath(mdgpItm)
+        return mdgpItm
     
+    mdgpItm = item.itemMDagPath(inDgp, fnRefList=fnRefList)
     if inDgp.length() == 1 : 
-      mdgpItm = item.itemMDagPath(inDgp, fnRefList=fnRefList)
-      idx = self.getRootMDagPathItemCount()
-      self.insertTopLevelItem(idx, mdgpItm)
-      self.updateItem(mdgpItm)
+      self.insertTopLevelItemBySorted(mdgpItm)
+      # self.updateItem(mdgpItm)
     else : 
       prtDgp = OpenMaya.MDagPath(inDgp)
       prtDgp.pop()
       fnPrt = OpenMaya.MFnDagNode(prtDgp)
       prtItm = self.findByUUID(UniqueMayaUUID(fnPrt))
-      if prtItm is None : return None
-      self.updateItem(prtItm)
+      if prtItm is None : 
+        logMessage(self.parent(), u'not exist parent item:' + inDgp.fullPathName())
+        self.insertTopLevelItemBySorted(mdgpItm)
+        return None
+      else : 
+        prtItm.insertChildBySorted(mdgpItm)
+        # self.updateItem(prtItm)
     
     return mdgpItm
 
-  def addMObject(self, inMObj, fnRefList=None) : 
+  def addMObject(self, inMObj, fnRefList=None, checkExists=True) : 
     fn = OpenMaya.MFnDependencyNode(inMObj)
     '''
     if self.topLevelItemCount() == 0 : return None
     itm = self.topLevelItem(0)
     mobjItm = itm.findMObject(inMObj)
     '''
-    mobjItm = self.findByUUID(UniqueMayaUUID(fn, fnRefList=fnRefList))
-    if mobjItm is not None : 
-      self.updateItem_MObject(mobjItm)
-      return mobjItm
+    if checkExists : 
+      mobjItm = self.findByUUID(UniqueMayaUUID(fn, fnRefList=fnRefList))
+      if mobjItm is not None : 
+        self.updateItem_MObject(mobjItm)
+        return mobjItm
     
     fldItm = self.findMObjectFolder(inMObj)
     mobjItm = item.itemMObject(inMObj, fnRefList=fnRefList)
@@ -423,29 +402,30 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
     tpId = fn.typeId
     if fldItm is None : 
       if apiTp == OpenMaya.MFn.kPluginDependNode : 
+        depPlgItm = item.itemMObjectFolder(u'kPluginDependNode', mfnType=apiTp)
+        self.addMObjectFolderItem(depPlgItm, None)
         fldItm = item.itemMObjectFolder(fn.typeName, typeId=tpId)
       else : 
         fldItm = item.itemMObjectFolder(inMObj.apiTypeStr, mfnType=apiTp)
-      fldItm.addChild(mobjItm)
-      self.addMObjectFolderItem(fldItm)
+      fldItm.addChildSorted(mobjItm)
+      self.addMObjectFolderItem(fldItm, inMObj)
     else : 
       if apiTp == OpenMaya.MFn.kPluginDependNode : 
         if fldItm.typeId is None or fldItm.typeId != tpId : 
           subFldItm = item.itemMObjectFolder(fn.typeName, typeId=tpId)
-          subFldItm.addChild(mobjItm)
+          subFldItm.addChildSorted(mobjItm)
           fldItm.addChild(subFldItm)
           fldItm = subFldItm
         else : 
-
           fldItm.addChild(mobjItm)
       else : 
         if fldItm.mfnType is None or fldItm.mfnType != apiTp : 
           subFldItm = item.itemMObjectFolder(inMObj.apiTypeStr, mfnType=apiTp)
-          subFldItm.addChild(mobjItm)
-          self.addMObjectFolderItem(subFldItm)
+          subFldItm.addChildSorted(mobjItm)
+          self.addMObjectFolderItem(subFldItm, inMObj)
           fldItm = subFldItm
         else : 
-          fldItm.addChild(mobjItm)
+          fldItm.addChildSorted(mobjItm)
 
     return mobjItm
 
@@ -633,7 +613,7 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
     modCtrlShft = QtGui.QGuiApplication.queryKeyboardModifiers() & (QtCore.Qt.ShiftModifier|QtCore.Qt.ControlModifier)
     selItmLst = self.selectedItems()
     if selItmLst is None or len(selItmLst) == 0 :
-      if modCtrlShft == 0 : cmds.select(clear=True)
+      if modCtrlShft == QtCore.Qt.NoModifier : cmds.select(clear=True)
       return
     opnChnk = False
     try : 
@@ -643,7 +623,7 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
             if opnChnk == False : 
               cmds.undoInfo(openChunk=True, chunkName=u'selectByOutliner')
               opnChnk = True
-              if modCtrlShft == 0 : 
+              if modCtrlShft == QtCore.Qt.NoModifier : 
                 cmds.select(clear=True)
                 logMessage(self.parent(), u'select -clear')
             cmds.select(selItm.itemUniqueName, add=True)

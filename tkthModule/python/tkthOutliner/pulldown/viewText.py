@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import maya.mel as mel
 import maya.api.OpenMaya as OpenMaya
 
 try :
@@ -65,8 +66,14 @@ class pullDownViewText(base.pullDownBase) :
     bfLst = self.filterByTypeIdList(self.bifrostTypeIdList)
     expLst = self.filterByHasFnList([ OpenMaya.MFn.kExpression ])
     if len(expLst) + len(bfLst) == 0 : raise Exception()
+    if len(bfLst) > 0 : 
+      act = self.menu.addAction(u'open in bifrost')
+      act.triggered.connect(self.openInBifrost)
     act = self.menu.addAction(u'view as text')
     act.triggered.connect(self.viewAsText)
+      
+  def openInBifrost(self) : 
+    mel.eval(u'openBifrostGraphEditorFromSelection;')
 
   def viewAsText(self) : 
     expItmLst = self.filterByHasFnList([ OpenMaya.MFn.kExpression ])

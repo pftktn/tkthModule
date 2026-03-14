@@ -32,10 +32,10 @@ class itemBase(QtWidgets.QTreeWidgetItem) :
   #  except : pass
   
   enInvalid = -1
-  enMObjectFolder = 0
-  enMDagPath = 1
-  enShapeFolder = 2
-  enMObject = 3
+  enMDagPath = 0
+  enMObject = 1
+  enMObjectFolder = 2
+  enShapeFolder = 3
   enConnection = 4
   enSourceFolder = 5
   enDestinationFolder = 6
@@ -76,23 +76,6 @@ class itemBase(QtWidgets.QTreeWidgetItem) :
         self.insertChild(chIdx, inItm)
         return chIdx
     self.addChild(inItm)
-    return chCnt
-  @staticmethod
-  def insertTopLevelChildBySorted(inWgt, inItm, startIndex=0) : 
-    itmNm = inItm.itemName
-    chCnt = inWgt.topLevelItemCount()
-    chIdx = startIndex
-    while chIdx < chCnt : 
-      try : 
-        chItm = inWgt.topLevelItem(chIdx)
-        chItmNm = chItm.itemName
-        if chItmNm[0] == u'<' and chItmNm[-1] == u'>' : continue
-        if itmNm < chItmNm : 
-          inWgt.insertTopLevelItem(chIdx, inItm)
-          return chIdx
-      finally : 
-        chIdx = chIdx + 1
-    inWgt.addTopLevelItem(inItm)
     return chCnt
     
   __itemUniqueName = None
@@ -142,6 +125,15 @@ class itemBase(QtWidgets.QTreeWidgetItem) :
     if treeWgt is None : return False
     treeWgt.deleteUUIDTable(child)
     return True
+
+  def addChildSorted(self, child) : 
+    chCnt = self.childCount()
+    if chCnt > 0 : 
+      chTxt = child.text(0)
+      for chIdx in range(chCnt) : 
+        if chTxt < self.child(chIdx).text(0) : 
+          return self.insertChild(chIdx, child)
+    return self.addChild(child)
 
   def addChild(self, child) :
     self.addUUIDTable(child)
