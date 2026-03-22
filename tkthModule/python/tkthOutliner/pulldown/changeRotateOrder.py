@@ -28,7 +28,7 @@ import tkthOutliner.pulldown.base as base
 class pullDownChangeRotateOrder(base.pullDownBase) : 
   def __init__(self, inMenu, inItmLst, inCore) : 
     super().__init__(inMenu, inItmLst, inCore)
-    trfLst = self.filterByItemType(item.itemBase.enMDagPath)
+    trfLst = self.filterByHasFnList([OpenMaya.MFn.kTransform])
     if len(trfLst) < 1 : raise Exception()
 
     subMenu = self.menu.addMenu(u'change rotateOrder')

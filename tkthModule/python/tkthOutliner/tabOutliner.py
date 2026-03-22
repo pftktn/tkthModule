@@ -351,7 +351,7 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
 
     return ( dgpLst, mobjDct )
 
-  def addMDagPath(self, inDgp, fnRefList=None, checkExists=True) : 
+  def addMDagPath(self, inDgp:OpenMaya.MDagPath, fnRefList=None, checkExists=True) : 
     fn = OpenMaya.MFnDagNode(inDgp)
     '''
     if self.topLevelItemCount() == 0 : return None
@@ -378,7 +378,10 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
         self.insertTopLevelItemBySorted(mdgpItm)
         return None
       else : 
-        prtItm.insertChildBySorted(mdgpItm)
+        if inDgp.hasFn(OpenMaya.MFn.kTransform) : 
+          prtItm.insertChildBySorted(mdgpItm)
+        else : 
+          prtItm.addShape(mdgpItm)
         # self.updateItem(prtItm)
     
     return mdgpItm
@@ -414,10 +417,10 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
         if fldItm.typeId is None or fldItm.typeId != tpId : 
           subFldItm = item.itemMObjectFolder(fn.typeName, typeId=tpId)
           subFldItm.addChildSorted(mobjItm)
-          fldItm.addChild(subFldItm)
+          fldItm.addChildSorted(subFldItm)
           fldItm = subFldItm
         else : 
-          fldItm.addChild(mobjItm)
+          fldItm.addChildSorted(mobjItm)
       else : 
         if fldItm.mfnType is None or fldItm.mfnType != apiTp : 
           subFldItm = item.itemMObjectFolder(inMObj.apiTypeStr, mfnType=apiTp)

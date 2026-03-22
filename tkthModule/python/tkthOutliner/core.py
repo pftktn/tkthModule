@@ -230,7 +230,7 @@ class mainWindow(qtBase.tkhkMainWindowSimple) :
       inUD.nodeChangedList.append(( mainWindow.enNodeParentAdded, (uuidCh, uuidPrt) ))
 
   @staticmethod
-  def timerCallback(inUD, elaspsedT, lastT) : # SDK Documentでは、typedef void(* MElapsedTimeFunction) (float elapsedTime, float lastTime, void *clientData)
+  def timerCallback(inUD:mainWindow, elaspsedT, lastT) : # SDK Documentでは、typedef void(* MElapsedTimeFunction) (float elapsedTime, float lastTime, void *clientData)
     # print(u'timerCallback:' + str(inUD.timerCallback_addTime))
     if inUD.timerCallback_addTime is None : return
     if inUD.timerCallback_addTime != inUD.timerCallback_lastTime : 
@@ -312,8 +312,7 @@ class mainWindow(qtBase.tkhkMainWindowSimple) :
             continue
           prtItm.addChild(chItm)
         else : 
-          idx = inUD.tabOutliner.treeWidget.getRootMDagPathItemCount()
-          inUD.tabOutliner.treeWidget.insertTopLevelItem(idx, chItm)
+          inUD.tabOutliner.treeWidget.insertTopLevelItemBySorted(chItm)
 
   
   __jobList = None

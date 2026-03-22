@@ -47,14 +47,14 @@ class pullDownCreateNode(base.pullDownBase) :
       if len(jntLst) == 2 :
         act = self.menu.addAction(u'create ikHandle')
         act.triggered.connect(self.add_ikHandle)
-    else : 
-      subMenu = self.menu.addMenu(u'create root')
-      act = subMenu.addAction(u'locator')
-      act.triggered.connect(self.addRoot_locator)
-      act = subMenu.addAction(u'group')
-      act.triggered.connect(self.addRoot_group)
-      act = subMenu.addAction(u'joint')
-      act.triggered.connect(self.addRoot_joint)
+
+    subMenu = self.menu.addMenu(u'create root')
+    act = subMenu.addAction(u'locator')
+    act.triggered.connect(self.addRoot_locator)
+    act = subMenu.addAction(u'group')
+    act.triggered.connect(self.addRoot_group)
+    act = subMenu.addAction(u'joint')
+    act.triggered.connect(self.addRoot_joint)
     
 
   def addChild_locator(self) : 
@@ -70,7 +70,9 @@ class pullDownCreateNode(base.pullDownBase) :
       for itm in trfLst :
         nd = createLocator(itm.itemUniqueName, nm)
         ndLst.append(nd[0])
+        '''
         self.core.updateItem(itm)
+        '''
       if len(ndLst) > 0 : 
         cmds.select(ndLst, replace=True)
         self.core.setSelectedBySelectionList()
@@ -90,7 +92,9 @@ class pullDownCreateNode(base.pullDownBase) :
       for itm in trfLst :
         nd = createTransform(itm.itemUniqueName, nm)
         ndLst.append(nd[0])
+        '''
         self.core.updateItem(itm)
+        '''
       if len(ndLst) > 0 : 
         cmds.select(ndLst, replace=True)
         self.core.setSelectedBySelectionList()
@@ -110,7 +114,9 @@ class pullDownCreateNode(base.pullDownBase) :
       for itm in trfLst :
         jnt = createJoint(itm.itemUniqueName, nm)
         ndLst.append(jnt[0])
+        '''
         self.core.updateItem(itm)
+        '''
       if len(ndLst) > 0 : 
         cmds.select(ndLst, replace=True)
         self.core.setSelectedBySelectionList()
@@ -125,11 +131,13 @@ class pullDownCreateNode(base.pullDownBase) :
       cmds.undoInfo(chunkName=u'pullDownAddNode.addRoot_locator', openChunk=True)
       opnChnk = True
       ndNm = createLocator(None, nm)
+      '''
       dgp = getMDagPathByName(ndNm[0])
       itm = item.itemMDagPath(dgp)
       idx = self.core.getRootMDagPathItemCount()
       self.core.insertTopLevelItem(idx, itm)
       self.core.updateItem(itm)
+      '''
       cmds.select(ndNm[0], replace=True)
       self.core.setSelectedBySelectionList()
     finally :
@@ -143,11 +151,13 @@ class pullDownCreateNode(base.pullDownBase) :
       cmds.undoInfo(chunkName=u'pullDownAddNode.addRoot_group', openChunk=True)
       opnChnk = True
       ndNm = createTransform(None, nm)
+      '''
       dgp = getMDagPathByName(ndNm[0])
       itm = item.itemMDagPath(dgp)
       idx = self.core.getRootMDagPathItemCount()
       self.core.insertTopLevelItem(idx, itm)
       self.core.updateItem(itm)
+      '''
       cmds.select(ndNm[0], replace=True)
       self.core.setSelectedBySelectionList()
     finally :
@@ -161,11 +171,13 @@ class pullDownCreateNode(base.pullDownBase) :
       cmds.undoInfo(chunkName=u'pullDownAddNode.addRoot_joint', openChunk=True)
       opnChnk = True
       ndNm = createJoint(None, nm)
+      '''
       dgp = getMDagPathByName(ndNm[0])
       itm = item.itemMDagPath(dgp)
       idx = self.core.getRootMDagPathItemCount()
       self.core.insertTopLevelItem(idx, itm)
       self.core.updateItem(itm)
+      '''
       cmds.select(ndNm[0], replace=True)
       self.core.setSelectedBySelectionList()
     finally :
@@ -182,16 +194,20 @@ class pullDownCreateNode(base.pullDownBase) :
       opnChnk = True
       pfx = u'ikh_'
       lst = cmds.ikHandle(startJoint=startJntNdNm, endEffector=endJntNdNm, name=pfx + endJntSn)
+      '''
       ikEfNd = getFullName(lst[0])
       dgp = getMDagPathByName(ikEfNd)
       itm = item.itemMDagPath(dgp)
       idx = self.core.getRootMDagPathItemCount()
       self.core.insertTopLevelItem(idx, itm)
+      '''
       if len(lst) == 2 : 
         pfx = u'eff_'
         cmds.rename(lst[1], pfx + endJntSn)
+        '''
         jntLst[0].updateConnection()
         self.core.updateItem(jntLst[0])
+        '''
       cmds.select(lst[0], replace=True)
       self.core.setSelectedBySelectionList()
     finally :
@@ -208,8 +224,10 @@ class pullDownCreateNode(base.pullDownBase) :
         sn = getShortName(ndNm)
         dcMtxNd = cmds.createNode(u'decomposeMatrix', name=u'decomposeMatrix_' + sn + u'_wm', skipSelect=True)
         cmds.connectAttr(plugName(ndNm, (u'worldMatrix', 0)), plugName(dcMtxNd, u'inputMatrix'), force=True)
+        '''
         mobj = getMObjectByName(dcMtxNd)
         self.core.addMObject(mobj)
+        '''
         itm.updateConnection()
     finally :
       if opnChnk : cmds.undoInfo(closeChunk=True)
@@ -249,7 +267,9 @@ class pullDownCreateNode(base.pullDownBase) :
           cmds.connectAttr(plugName(ndNm, u'rotateOrder'), plugName(cmMtx, u'inputRotateOrder'), force=True)
           cmds.connectAttr(plugName(ndNm, u'rotate'), plugName(cmMtx, u'inputRotate'), force=True)
           cmds.setAttr(plugName(cmMtx, u'useEulerRotation'), True)
+        '''
         for mobj in mobjLst : self.core.addMObject(mobj)
+        '''
         itm.updateConnection()
     finally :
       if opnChnk : cmds.undoInfo(closeChunk=True)
@@ -277,7 +297,9 @@ class pullDownCreateNode(base.pullDownBase) :
           mobjLst.append(getMObjectByName(qtPrd))
           cmds.connectAttr(plugName(eulQtRo, u'outputQuat'), plugName(qtPrd, u'input1Quat'), force=True)
           cmds.connectAttr(plugName(eulQtJo, u'outputQuat'), plugName(qtPrd, u'input2Quat'), force=True)
+        '''
         for mobj in mobjLst : self.core.addMObject(mobj)
+        '''
         itm.updateConnection()
     finally :
       if opnChnk : cmds.undoInfo(closeChunk=True)
