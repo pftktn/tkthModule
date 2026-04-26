@@ -49,37 +49,69 @@ class qtDrawingOverridesColor(QtGui.QColor) :
     [ u'pink', [161, 48, 106]]
   ]
   enMayaDOGray = 0
+  #mayaDOGray = qtDrawingOverridesColor(None, rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDOGray])
   enMayaDOBlack = 1
+  #mayaDOBlack = qtDrawingOverridesColor(None, rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDOBlack])
   enMayaDODarkGray = 2
+  #mayaDODarkGray = qtDrawingOverridesColor(None, rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDODarkGray])
   enMayaDOLightGray = 3
+  #mayaDOLightGray = qtDrawingOverridesColor(None, rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDOLightGray])
   enMayaDODarkRed = 4
+  #mayaDODarkRed = qtDrawingOverridesColor(None, rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDODarkRed])
   enMayaDODarkBlue = 5
+  #mayaDODarkBlue = qtDrawingOverridesColor(None, rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDODarkBlue])
   enMayaDOBlue = 6
+  #mayaDOBlue = qtDrawingOverridesColor(None, rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDOBlue])
   enMayaDODarkGreen = 7
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDODarkMagenta = 8
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOMagenta = 9
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOBrown = 10
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDODarkBrown = 11
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDODarkOrange = 12
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDORed = 13
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOGreen = 14
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDODarkNavy = 15
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOWhite = 16
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOYellow = 17
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOSkyBlue = 18
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOEmeraldGreen = 19
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDORose = 20
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOLightOrange = 21
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOLightYellow = 22
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDODarkEmerald = 23
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOTang = 24
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOGold = 25
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOGrass = 26
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDODarkBlueGreen = 27
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOBlueGreen = 28
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
   enMayaDOBlueGray = 29
-  enMayaDOPurple =30
-  enMayaDOPink =31
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
+  enMayaDOPurple = 30
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
+  enMayaDOPink = 31
+  #mayaDO = qtDrawingOverridesColor(rgba=qtDrawingOverridesColor.mayaDOColorList[qtDrawingOverridesColor.enMayaDO])
 
   '''
   def __init__(self, inNm, alpha=255) : 
@@ -94,27 +126,32 @@ class qtDrawingOverridesColor(QtGui.QColor) :
     super(__class__, self).__init__(qtDrawingOverridesColor.mayaDOColorList[inIdx][1][0], qtDrawingOverridesColor.mayaDOColorList[inIdx][2][0], qtDrawingOverridesColor.mayaDOColorList[inIdx][3][0], alpha)
   '''
 
-  def __init__(self, inFn, rgba=None) : 
-    if rgba is None : rgba = [255, 255, 255, 255]
-    plg = inFn.findPlug(u'overrideEnabled', True)
-    if plg.asBool() :
-      plg = inFn.findPlug(u'overrideRGBColors', True)
+  def __init__(self, inFn, rgba=None, colorIndex=None) : 
+    if colorIndex is not None : 
+      rgba = list(qtDrawingOverridesColor.mayaDOColorList[colorIndex][1])
+      rgba.append(255)
+    elif rgba is None : rgba = [255, 255, 255, 255]
+
+    if inFn is not None : 
+      plg = inFn.findPlug(u'overrideEnabled', True)
       if plg.asBool() :
-        for idx, rgbChar in enumerate([u'R', u'G', u'B']) : 
-          plgRGB = inFn.findPlug(u'overrideColor' + rgbChar, True)
-          rgba[idx] = int(plgRGB.asFloat() * 255.0)
-          if rgba[idx] < 0 : rgba[idx] = 0
-          elif rgba[idx] > 255 : rgba[idx] = 255
-      else :
-        plgIdx = inFn.findPlug(u'overrideColor', True)
-        idx = 0
-        dh = None
-        try :
-          dh = plgIdx.asMDataHandle()
-          idx = dh.asUChar()
-        finally :
-          if dh is not None : plgIdx.destructHandle(dh)
-        rgba[0] = qtDrawingOverridesColor.mayaDOColorList[idx][1][0]
-        rgba[1] = qtDrawingOverridesColor.mayaDOColorList[idx][1][1]
-        rgba[2] = qtDrawingOverridesColor.mayaDOColorList[idx][1][2]
+        plg = inFn.findPlug(u'overrideRGBColors', True)
+        if plg.asBool() :
+          for idx, rgbChar in enumerate([u'R', u'G', u'B']) : 
+            plgRGB = inFn.findPlug(u'overrideColor' + rgbChar, True)
+            rgba[idx] = int(plgRGB.asFloat() * 255.0)
+            if rgba[idx] < 0 : rgba[idx] = 0
+            elif rgba[idx] > 255 : rgba[idx] = 255
+        else :
+          plgIdx = inFn.findPlug(u'overrideColor', True)
+          idx = 0
+          dh = None
+          try :
+            dh = plgIdx.asMDataHandle()
+            idx = dh.asUChar()
+          finally :
+            if dh is not None : plgIdx.destructHandle(dh)
+          rgba[0] = qtDrawingOverridesColor.mayaDOColorList[idx][1][0]
+          rgba[1] = qtDrawingOverridesColor.mayaDOColorList[idx][1][1]
+          rgba[2] = qtDrawingOverridesColor.mayaDOColorList[idx][1][2]
     super(__class__, self).__init__(rgba[0], rgba[1], rgba[2], rgba[3])

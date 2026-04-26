@@ -264,6 +264,48 @@ def getConstraintUpVector(inDGP) :
   srcFn = OpenMaya.MFnDagNode(srcPlg.node())
   return srcFn.getPath()
 
+
+def getDestinationNodeByType(inObj, inSourceName, inType, destinationName=None, mfn=None, plug=None) : 
+  if mfn is None : mfn = OpenMaya.MFnDependencyNode(inObj)
+  if plug is None : plug = mfn.findPlug(inSourceName, True)
+  dstPlgLst = plug.destinations()
+  if dstPlgLst is not None : 
+    for dstPlg in dstPlgLst : 
+      if destinationName is not None : 
+        ndPlg = dstPlg.name().split(u'.')
+        plgNm = u'.'.join(ndPlg[1:])
+        if plgNm != destinationName : 
+          continue
+      if dstPlg.node().hasFn(inType) : return dstPlg.node()
+  return None
+
+
+def getIkHandleFromJoint(inDGP) : 
+  if inDGP.hasFn(OpenMaya.MFn.kJoint) == False : return None
+  print(inDGP.fullPathName())
+  hndl = getDestinationNodeByType(inDGP, u'message', OpenMaya.MFn.kIkHandle, destinationName=u'startJoint', mfn=OpenMaya.MFnDagNode(inDGP))
+  if hndl is not None : return hndl
+  que = [ inDGP ]
+  while len(que) > 0 : 
+    dgp = que.pop(0)
+    chCnt = dgp.childCount()
+    for chIdx in range(chCnt) : 
+      chObj = dgp.child(chIdx)
+      if chObj.hasFn(OpenMaya.MFn.kJoint) : 
+        hndl = getDestinationNodeByType(chObj, u'message', OpenMaya.MFn.kIkHandle, destinationName=u'startJoint')
+        if hndl is not None : return None
+        chDgp = OpenMaya.MDagPath(dgp)
+        chDgp.push(chObj)
+        que.append(chDgp)
+      elif chObj.hasFn(OpenMaya.MFn.kIkEffector) : 
+        fn = OpenMaya.MFnDependencyNode(chObj)
+        plg = fn.findPlug(u'handlePath', True)
+        elmPlg = plg.elementByPhysicalIndex(0)
+        hndl = getDestinationNodeByType(chObj, u'handlePath', OpenMaya.MFn.kIkHandle, destinationName=u'endEffector', plug=elmPlg)
+        if hndl is not None : return hndl
+  return None      
+
+
 # array     : 0x20000
 # compound  : 0x10000
 #
