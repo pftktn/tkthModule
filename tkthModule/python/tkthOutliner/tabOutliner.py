@@ -1,4 +1,5 @@
 import pathlib
+from operator import methodcaller
 
 import maya.cmds as cmds
 import maya.mel as mel
@@ -162,8 +163,8 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
           elif chItm.isSubFolder(inMObj, mfnType=mfnType) : 
             que.append(chItm)
             break
-        elif chItm.itemType == item.itemBase.enMObject : 
-          break
+        #elif chItm.itemType == item.itemBase.enMObject : 
+        #  break
     
     return fldItm
 
@@ -251,10 +252,26 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
   def loadAPITypeFolderList(self) : 
     self.__apiTypeFolderList = loadJSON(pathlib.Path(__file__).parent.as_posix() + u'/apitype.json')
     for apTp in self.__apiTypeFolderList : 
-      apTp.append(None)
+      itm = None
       if type(apTp[1]) == list : 
+        mfnNmLst = list()
+        mfnTpLst = list()
         for subApTp in apTp[1] : 
-          subApTp.append(None)
+          if subApTp[0] in OpenMaya.MFn.__dict__ : 
+            mfnNmLst.append(subApTp[0])
+            mfnTpLst.append(OpenMaya.MFn.__dict__[subApTp[0]])
+        itm = item.itemMObjectFolder(apTp[0], mfnTypeList=mfnTpLst)
+        for nm, tp in zip(mfnNmLst, mfnTpLst) : 
+          subItm = item.itemMObjectFolder(nm, mfnType=tp)
+          itm.addChildSorted(subItm)
+      else : 
+        if apTp[0] in OpenMaya.MFn.__dict__ : 
+          itm = item.itemMObjectFolder(apTp[0], mfnTypeList=[ OpenMaya.MFn.__dict__[apTp[0]] ])
+      if itm is not None : self.insertTopLevelItemBySorted(itm)
+    itm = item.itemMObjectFolder(u'kPluginDependNode', mfnType=OpenMaya.MFn.kPluginDependNode)
+    self.insertTopLevelItemBySorted(itm)
+    itm = item.itemMObjectFolder(u'kDependencyNode', mfnType=OpenMaya.MFn.kDependencyNode)
+    self.insertTopLevelItemBySorted(itm)
   
   def addMObjectFolderItem(self, inMObjFldItm, inMObj) : 
     if inMObj is None : 
@@ -324,15 +341,10 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
     
     self.clear()
     self.loadAPITypeFolderList()
-    ( dgpLst, mobjDct ) = self.getAll()
-    self.applyExpandedList()
+    # ( dgpLst, mobjDct ) = self.getAll()
 
-
-  def getAll(self) : 
     dgpLst = list()
-    mobjDct = dict()
     fnRefList = getMFnReferenceList()
-
     itr = OpenMaya.MItDependencyNodes()
     while itr.isDone() == False : 
       try : 
@@ -341,15 +353,18 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
           fn = OpenMaya.MFnDagNode(mobj)
           dgp = fn.getPath()
           if dgp.length() == 0 : continue
-          self.addMDagPath(dgp, fnRefList=fnRefList, checkExists=False)
-          # itm = item.itemMDagPath(dgp, fnRefList=fnRefList)
-          # dgpLst.append([dgp, itm])
+          dgpLst.append(dgp)
         except : 
           self.addMObject(mobj, fnRefList=fnRefList, checkExists=False)
       finally : 
         itr.next()
+    
+    dgpLst.sort(key=methodcaller(u'fullPathName'))
+    for dgp in dgpLst : 
+      self.addMDagPath(dgp, fnRefList=fnRefList, checkExists=False)
 
-    return ( dgpLst, mobjDct )
+    self.applyExpandedList()
+
 
   def addMDagPath(self, inDgp:OpenMaya.MDagPath, fnRefList=None, checkExists=True) : 
     fn = OpenMaya.MFnDagNode(inDgp)
@@ -372,11 +387,10 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
       prtDgp = OpenMaya.MDagPath(inDgp)
       prtDgp.pop()
       fnPrt = OpenMaya.MFnDagNode(prtDgp)
-      prtItm = self.findByUUID(UniqueMayaUUID(fnPrt))
+      prtItm = self.findByUUID(UniqueMayaUUID(fnPrt, fnRefList=fnRefList))
       if prtItm is None : 
-        logMessage(self.parent(), u'not exist parent item:' + inDgp.fullPathName())
+        logMessage(self.parent(), u'not exist parent item:' + str((inDgp.fullPathName(), prtDgp.fullPathName())))
         self.insertTopLevelItemBySorted(mdgpItm)
-        return None
       else : 
         if inDgp.hasFn(OpenMaya.MFn.kTransform) : 
           prtItm.insertChildBySorted(mdgpItm)
@@ -406,12 +420,15 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
     if fldItm is None : 
       if apiTp == OpenMaya.MFn.kPluginDependNode : 
         depPlgItm = item.itemMObjectFolder(u'kPluginDependNode', mfnType=apiTp)
-        self.addMObjectFolderItem(depPlgItm, None)
+        # self.addMObjectFolderItem(depPlgItm, None)
+        self.insertTopLevelItemBySorted(depPlgItm)
         fldItm = item.itemMObjectFolder(fn.typeName, typeId=tpId)
+        depPlgItm.addChildSorted(fldItm)
       else : 
         fldItm = item.itemMObjectFolder(inMObj.apiTypeStr, mfnType=apiTp)
+        self.insertTopLevelItemBySorted(fldItm)
       fldItm.addChildSorted(mobjItm)
-      self.addMObjectFolderItem(fldItm, inMObj)
+      # self.addMObjectFolderItem(fldItm, inMObj)
     else : 
       if apiTp == OpenMaya.MFn.kPluginDependNode : 
         if fldItm.typeId is None or fldItm.typeId != tpId : 
@@ -425,7 +442,8 @@ class treeWidgetOutliner(QtWidgets.QTreeWidget) :
         if fldItm.mfnType is None or fldItm.mfnType != apiTp : 
           subFldItm = item.itemMObjectFolder(inMObj.apiTypeStr, mfnType=apiTp)
           subFldItm.addChildSorted(mobjItm)
-          self.addMObjectFolderItem(subFldItm, inMObj)
+          # self.addMObjectFolderItem(subFldItm, inMObj)
+          fldItm.addChildSorted(subFldItm)
           fldItm = subFldItm
         else : 
           fldItm.addChildSorted(mobjItm)

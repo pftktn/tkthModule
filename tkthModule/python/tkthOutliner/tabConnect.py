@@ -179,7 +179,7 @@ class itemPlug(itemPlugBase) :
     lst = plgNm.split(u'.')
     attrNm = lst[-1]
     txt = attrNm + u':' + getValueTypeString(valTp)
-    if attrNm in [ u'scale', u'rotate', u'translate', u'rotateOrder', u'jointOrient', u'shear' ] : txt = txt + u' #srt'
+    if attrNm in [ u'scale', u'shear', u'rotateAxis', u'rotate', u'rotateOrder', u'translate', u'jointOrient', u'inverseScale', u'offsetParentMatrix', u'worldMatrix', u'matrix', u'bifrostPort' ] : txt = txt + u' #srt'
     super(__class__, self).__init__(plugName=plgNm, valueType=valTp, text=txt, itemFlags=itemFlags)
 
     if inPlg.isArray : 
@@ -285,11 +285,11 @@ class itemBifrostPlug(itemPlugBase) :
     lst = inPlgNm.split(u'.')
     nd = getShortName(lst[0])
     attr = lst[-1]
-    mtch = re.search(u'\[\d+\]$', attr)
+    mtch = re.search(u'\\[\\d+\\]$', attr)
     while mtch is not None : 
       idxLen = len(mtch.group(0))
       attr = attr[:-idxLen]
-      mtch = re.search(u'\[\d+\]$', attr)
+      mtch = re.search(u'\\[\\d+\\]$', attr)
     return nd + u'_' + attr
 
   def addPortInput(self, inSrcItm) : 
@@ -365,9 +365,9 @@ class tabConnect(tabCommon.tabCommon) :
   __lineEdit_plugFilterSource:QtWidgets.QLineEdit = None
   @property
   def lineEdit_plugFilterSource(self) : return self.__lineEdit_plugFilterSource
-  __pushButton_plugFilterSource:QtWidgets.QPushButton = None
+  __pushButton_plugFilter:QtWidgets.QPushButton = None
   @property
-  def pushButton_plugFilterSource(self) : return self.__pushButton_plugFilterSource
+  def pushButton_plugFilter(self) : return self.__pushButton_plugFilter
   __treeWidget_plugSource:QtWidgets.QTreeWidget = None
   @property
   def treeWidget_plugSource(self) : return self.__treeWidget_plugSource
@@ -378,9 +378,9 @@ class tabConnect(tabCommon.tabCommon) :
   __lineEdit_plugFilterDestination:QtWidgets.QLineEdit = None
   @property
   def lineEdit_plugFilterDestination(self) : return self.__lineEdit_plugFilterDestination
-  __pushButton_plugFilterDestination:QtWidgets.QPushButton = None
+  __pushButton_swapSourceDestination:QtWidgets.QPushButton = None
   @property
-  def pushButton_plugFilterDestination(self) : return self.__pushButton_plugFilterDestination
+  def pushButton_swapSourceDestination(self) : return self.__pushButton_swapSourceDestination
   __treeWidget_plugDestination:QtWidgets.QTreeWidget = None
   @property
   def treeWidget_plugDestination(self) : return self.__treeWidget_plugDestination
@@ -409,15 +409,15 @@ class tabConnect(tabCommon.tabCommon) :
     self.__lineEdit_plugFilterSource.setObjectName(u"lineEdit_plugFilterSource")
     self.horizontalLayout_filter.addWidget(self.lineEdit_plugFilterSource)
 
-    self.__pushButton_plugFilterSource = QtWidgets.QPushButton(self)
-    self.__pushButton_plugFilterSource.setObjectName(u"pushButton_plugFilterSource")
-    self.pushButton_plugFilterSource.setText(u'filter')
-    self.horizontalLayout_filter.addWidget(self.pushButton_plugFilterSource)
+    self.__pushButton_plugFilter = QtWidgets.QPushButton(self)
+    self.__pushButton_plugFilter.setObjectName(u"pushButton_plugFilter")
+    self.pushButton_plugFilter.setText(u'filter')
+    self.horizontalLayout_filter.addWidget(self.pushButton_plugFilter)
 
-    self.__pushButton_plugFilterDestination = QtWidgets.QPushButton(self)
-    self.__pushButton_plugFilterDestination.setObjectName(u"pushButton_plugFilterDestination")
-    self.pushButton_plugFilterDestination.setText(u'filter')
-    self.horizontalLayout_filter.addWidget(self.pushButton_plugFilterDestination)
+    self.__pushButton_swapSourceDestination = QtWidgets.QPushButton(self)
+    self.__pushButton_swapSourceDestination.setObjectName(u"pushButton_swapSourceDestination")
+    self.pushButton_swapSourceDestination.setText(u'swap')
+    self.horizontalLayout_filter.addWidget(self.pushButton_swapSourceDestination)
 
     self.__lineEdit_plugFilterDestination = QtWidgets.QLineEdit(self)
     self.__lineEdit_plugFilterDestination.setObjectName(u"lineEdit_plugFilterDestination")
@@ -463,10 +463,10 @@ class tabConnect(tabCommon.tabCommon) :
     self.comboBox_nodeSource.currentIndexChanged.connect(self.currentIndexChanged_nodeSource)
     self.comboBox_nodeDestination.currentIndexChanged.connect(self.currentIndexChanged_nodeDestination)
 
-    self.pushButton_plugFilterSource.clicked.connect(self.clicked_plugFilterSource)
-    self.pushButton_plugFilterDestination.clicked.connect(self.clicked_plugFilterDestination)
-    self.lineEdit_plugFilterSource.editingFinished.connect(self.clicked_plugFilterSource)
-    self.lineEdit_plugFilterDestination.editingFinished.connect(self.clicked_plugFilterDestination)
+    self.pushButton_plugFilter.clicked.connect(self.clicked_plugFilter)
+    self.pushButton_swapSourceDestination.clicked.connect(self.clicked_swapSourceDestination)
+    self.lineEdit_plugFilterSource.editingFinished.connect(self.editingFinished_plugFilterSource)
+    self.lineEdit_plugFilterDestination.editingFinished.connect(self.editingFinished_plugFilterDestination)
     
     self.comboBox_nodeSource.clear()
     self.comboBox_nodeDestination.clear()
@@ -523,15 +523,22 @@ class tabConnect(tabCommon.tabCommon) :
         self.comboBox_nodeDestination.removeItem(idx)
         break
 
+    self.comboBox_nodeSource.addItem(sn, userData=inNdNm)
+    self.comboBox_nodeDestination.addItem(sn, userData=inNdNm)
+    cnt = self.comboBox_nodeSource.count() - self.__comboBox_nodeCountMax
+    if cnt > 0 : 
+      for idx in range(cnt) : 
+        self.comboBox_nodeSource.removeItem(0)
+        self.comboBox_nodeDestination.removeItem(0)
+    '''
     self.comboBox_nodeSource.insertItem(0, sn, userData=inNdNm)
     self.comboBox_nodeDestination.insertItem(0, sn, userData=inNdNm)
-    
     cnt = self.comboBox_nodeSource.count() - self.__comboBox_nodeCountMax
     if cnt > 0 : 
       for idx in range(cnt) : 
         self.comboBox_nodeSource.removeItem(self.__comboBox_nodeCountMax)
         self.comboBox_nodeDestination.removeItem(self.__comboBox_nodeCountMax)
-    
+    '''
     
   def getFn(self, inComboBox:QtWidgets.QComboBox) : 
     ndNm = inComboBox.currentData()
@@ -690,9 +697,25 @@ class tabConnect(tabCommon.tabCommon) :
         itm = inTreeWidget.topLevelItem(idx)
         itm.setVisibleByName(fltStr)
 
-  def clicked_plugFilterSource(self) : 
+  def clicked_plugFilter(self) : 
+    self.applyPlugFilter(self.treeWidget_plugSource, self.lineEdit_plugFilterSource)
+    self.applyPlugFilter(self.treeWidget_plugDestination, self.lineEdit_plugFilterDestination)
+
+  def clicked_swapSourceDestination(self) : 
+    srcIdx = self.comboBox_nodeSource.currentIndex()
+    srcFltTxt = self.lineEdit_plugFilterSource.text()
+    dstIdx = self.comboBox_nodeDestination.currentIndex()
+    dstFltTxt = self.lineEdit_plugFilterDestination.text()
+    
+    self.lineEdit_plugFilterSource.setText(dstFltTxt)
+    self.lineEdit_plugFilterDestination.setText(srcFltTxt)
+    self.comboBox_nodeSource.setCurrentIndex(dstIdx)
+    self.comboBox_nodeDestination.setCurrentIndex(srcIdx)
+
+
+  def editingFinished_plugFilterSource(self) : 
     self.applyPlugFilter(self.treeWidget_plugSource, self.lineEdit_plugFilterSource)
 
-  def clicked_plugFilterDestination(self) : 
+  def editingFinished_plugFilterDestination(self) : 
     self.applyPlugFilter(self.treeWidget_plugDestination, self.lineEdit_plugFilterDestination)
 

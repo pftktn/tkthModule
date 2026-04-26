@@ -479,11 +479,24 @@ class itemMObjectFolder(itemBase) :
     fnt = self.font(0)
     fnt.setBold(True)
     self.setFont(0, fnt)
+    if self.mfnTypeList is not None : 
+      self.setForeground(0, QtGui.QBrush(qtDrawingOverridesColor(None, colorIndex=qtDrawingOverridesColor.enMayaDODarkBlueGreen)))
+    elif self.mfnType is not None : 
+      self.setForeground(0, QtGui.QBrush(qtDrawingOverridesColor(None, colorIndex=qtDrawingOverridesColor.enMayaDOBlueGreen)))
+    else : 
+      self.setForeground(0, QtGui.QBrush(qtDrawingOverridesColor(None, colorIndex=qtDrawingOverridesColor.enMayaDOGreen)))
   
   def isThisFolder(self, inMObj, mfnType=None, typeId=None) : 
     if self.mfnType is not None : 
+      '''
+      if self.mfnType == OpenMaya.MFn.kDependencyNode : 
+        if inMObj.apiType() == OpenMaya.MFn.kDependencyNode : 
+          return True
+        else : 
+          return False
+      '''
       if inMObj is not None : 
-        if inMObj.hasFn(self.mfnType) : return True
+        if inMObj.apiType() == self.mfnType : return True
         else : return False
       elif mfnType is not None : 
         if mfnType == self.mfnType : return True
@@ -497,6 +510,12 @@ class itemMObjectFolder(itemBase) :
     return False
   
   def isSubFolder(self, inMObj, mfnType=None) : 
+    if self.mfnType is not None : 
+      if self.mfnType == OpenMaya.MFn.kDependencyNode : 
+        if inMObj.apiType() == OpenMaya.MFn.kDependencyNode : 
+          return True
+        else : 
+          return False
     if self.__mfnTypeList is not None : 
       if inMObj is not None : 
         for mfnType in self.__mfnTypeList : 
@@ -758,6 +777,12 @@ class itemConnection(itemBase) :
     else : 
       if targetNode.hasFn(OpenMaya.MFn.kComposeMatrix) : 
         chkPlgLst.append(fn.findPlug(u'outputMatrix', True))
+      elif targetNode.hasFn(OpenMaya.MFn.kDecomposeMatrix) : 
+        chkPlgLst.append(fn.findPlug(u'outputTranslate', True))
+        chkPlgLst.append(fn.findPlug(u'outputRotate', True))
+        chkPlgLst.append(fn.findPlug(u'outputScale', True))
+        chkPlgLst.append(fn.findPlug(u'outputShear', True))
+        chkPlgLst.append(fn.findPlug(u'outputQuat', True))
       elif targetNode.hasFn(OpenMaya.MFn.kMatrixMult) : 
         chkPlgLst.append(fn.findPlug(u'matrixSum', True))
       elif fn.typeId.id() == 0x58000302 : # inverseMatrix

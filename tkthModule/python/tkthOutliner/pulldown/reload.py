@@ -29,7 +29,8 @@ class pullDownReload(base.pullDownBase) :
     act.triggered.connect(self.executeReload)
 
   def executeReload(self) : 
-    for itm in self.itemList : self.core.updateItem(itm)
+    for itm in self.itemList : 
+      self.core.updateItem(itm)
 
 class pullDownAllReload(base.pullDownBase) : 
   def __init__(self, inMenu, inItmLst, inCore) : 
@@ -37,5 +38,6 @@ class pullDownAllReload(base.pullDownBase) :
     act = self.menu.addAction(u'all reload')
     act.triggered.connect(self.executeReload)
 
-  def executeReload(self) : self.core.updateContent()
+  def executeReload(self) : 
+    self.core.updateContent()
 
