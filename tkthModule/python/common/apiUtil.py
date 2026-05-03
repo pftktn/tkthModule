@@ -142,19 +142,19 @@ def getMFnReferenceList() :
 
 
 def getUniqueUUID(inFn, fnRefList=None) : 
-  uuidTpl = [ inFn.uuid() ]
+  uuidLst = [ inFn.uuid() ]
   if inFn.isFromReferencedFile : 
     if fnRefList is None : 
       fnRefList = getMFnReferenceList()
     for fnRef in fnRefList : 
       try :
         if fnRef.containsNodeExactly(inFn.object()) : 
-          uuidTpl.extend(getUniqueUUID(fnRef, fnRefList=fnRefList))
+          uuidLst.extend(getUniqueUUID(fnRef, fnRefList=fnRefList))
           break
       except :
         pass
         # print((fnRef.absoluteName(), inFn.absoluteName(), inFn.object()))
-  return uuidTpl
+  return uuidLst
 
 
 class UniqueMayaUUID(object) : 
@@ -163,6 +163,38 @@ class UniqueMayaUUID(object) :
   def uuidList(self) : return self.__uuidList
   
   def __init__(self, inFn, fnRefList=None) : self.__uuidList = getUniqueUUID(inFn, fnRefList=fnRefList)
+
+  def getMObject(self, fnRefList=None) : 
+    slLst = OpenMaya.MSelectionList()
+    slLst.add(self.__uuidList[0])
+    cnt = slLst.length()
+    if cnt == 0 : return None
+    if cnt == 1 : slLst.getDependNode(0)
+    if fnRefList is None : fnRefList = getMFnReferenceList()
+    uuidLen = len(self.__uuidList)
+    slItr = OpenMaya.MItSelectionList(slLst)
+    while slItr.isDone() == False : 
+      try : 
+        fn = None
+        itmTp = slItr.itemType()
+        if itmTp == OpenMaya.MItSelectionList.kDNselectionItem : 
+          obj = slItr.getDependNode()
+          fn = OpenMaya.MFnDependencyNode(obj)
+        elif itmTp == OpenMaya.MItSelectionList.kDagSelectionItem : 
+          dgp = slItr.getDagPath()
+          fn = OpenMaya.MFnDagNode(dgp)
+        if fn is None : continue
+        tmpUuidLst = getUniqueUUID(fn, fnRefList=fnRefList)
+        if len(tmpUuidLst) != uuidLen : continue
+        matchUuid = True
+        for idx in range(uuidLen - 1) : 
+          if self.__uuidList[idx + 1] != tmpUuidLst[idx + 1] : 
+            matchUuid = False
+            break
+        if matchUuid : return fn.object()
+      finally : 
+        slItr.next()
+    return None
 
   def __eq__(self, inOther) : 
     cnt = len(self.__uuidList)

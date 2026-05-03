@@ -29,9 +29,11 @@
       ["kNodeGraphEditorBookmarks"],
       ["kNodeGraphEditorInfo"],
       ["kSelectionListOperator"],
-      ["kGroupId"], ["kGroupParts"], 
+      ["kGroupId"],
+      ["kGroupParts"], 
       ["kViewColorManager"],
       ["kDisplayLayer"],
+      ["kDisplayLayerManager"],
       ["kParticleCloud"],
       ["kDynamicsController"],
       ["kDOF"],
@@ -40,7 +42,8 @@
       ["kGlobalCacheControls"],
       ["kSequenceManager"],
       ["kShapeEditorManager"],
-      ["kPoseInterpolatorManager"]
+      ["kPoseInterpolatorManager"],
+      ["kBlindDataTemplate"]
     ]
   ],
   [ "kObjectFilter", null ],
@@ -60,8 +63,7 @@
       ["kClampColor"], 
       ["kMatrixWtAdd"],
       ["kMultDoubleLinear"],
-      ["kNegate"],
-      ["kPairBlend"]
+      ["kNegate"]
     ]
   ],
   [
@@ -80,21 +82,34 @@
   ],
   [
     "mShaderkGroup", [
-      ["kBlinn"], ["kBlinnMaterial"], 
-      ["kBump"], ["kBump3d"],
+      ["kBlinn"],
+      ["kBlinnMaterial"], 
+      ["kBump"], 
+      ["kBump3d"],
       ["kFileTexture"], 
-      ["kLambert"], ["kLambertMaterial"], 
-      ["kPhong"], ["kPhongMaterial"],
-      ["kPlace2dTexture"], ["kPlace3dTexture"],
-      ["kMaterialInfo"], ["kMaterial"],
-      ["kShadingEngine"], ["kAdskMaterial"],
+      ["kLambert"], 
+      ["kLambertMaterial"], 
+      ["kPhong"], 
+      ["kPhongMaterial"],
+      ["kPlace2dTexture"], 
+      ["kPlace3dTexture"],
+      ["kMaterialInfo"], 
+      ["kMaterial"],
+      ["kShadingEngine"], 
+      ["kAdskMaterial"],
       ["kStandardSurface"],
-      ["kLightLink"], ["kShaderGlow"], ["kPostProcessList"],
-      ["kShaderList"], ["kTextureList"], ["kLightList"], ["kDefaultLightList"]
+      ["kLightLink"], 
+      ["kShaderGlow"], 
+      ["kPostProcessList"],
+      ["kShaderList"], 
+      ["kTextureList"], 
+      ["kLightList"], 
+      ["kDefaultLightList"],
+      ["kColorMgtGlobals"]
     ]
   ],
   [
-    "zPolykGroup", [
+    "zPolyGroup", [
       ["kPolyAppend"],
       ["kPolyAppendVertex"],
       ["kPolyArrow"],

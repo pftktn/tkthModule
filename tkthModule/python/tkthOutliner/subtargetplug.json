@@ -1,0 +1,76 @@
+{
+  "kComposeMatrix" : [
+    [ "inputTranslate", "inputRotate", "inputScale", "inputShear", "inputQuat" ],
+    [ "outputMatrix" ]
+  ],
+  "kDecomposeMatrix" : [
+    [ "inputMatrix" ],
+    [ "outputTranslate", "outputRotate", "outputScale", "outputShear", "outputQuat" ]
+  ],
+  "kExpression" : [
+    [ "input" ],
+    [ "output" ]
+  ],
+  "kMatrixMult" : [
+    [ "matrixIn" ],
+    [ "matrixSum" ]
+  ],
+  "kMatrixWtAdd" : [
+    [ "wtMatrix" ],
+    [ "matrixSum" ]
+  ],
+  "kMultiplyDivide" : [
+    [ "input1", "input2" ],
+    [ "output" ]
+  ],
+  "kPairBlend" : [
+    [ "inTranslate1", "inRotate1", "inTranslate2", "inRotate2" ],
+    [ "outTranslate", "outRotate" ]
+  ],
+  "kPlusMinusAverage" : [
+    [ "input1D", "input2D", "input3D" ],
+    [ "output1D", "output2D", "output3D" ]
+  ],
+  "kReverse" : [
+    [ "input" ],
+    [ "output" ]
+  ],
+
+  "kPluginDependNode" : {
+    "0x816836" : [
+      [ "floatA", "floatB" ],
+      [ "outBool" ],
+      "floatLogic"
+    ],
+    "0x816840" : [
+      [ "floatA", "floatB" ],
+      [ "outFloat" ],
+      "floatMath"
+    ],
+    "0x58000080" : [
+      [ "inputRotate" ],
+      [ "outputQuat" ],
+      "eulerToQuat"
+    ],
+    "0x58000081" : [
+      [ "inputQuat" ],
+      [ "outputRotate" ],
+      "quatToEuler"
+    ],
+    "0x58000090" : [
+      [ "input1Quat", "input2Quat" ],
+      [ "outputQuat" ],
+      "quatAdd"
+    ],
+    "0x58000093" : [
+      [ "input1Quat", "input2Quat" ],
+      [ "outputQuat" ],
+      "quatSlerp"
+    ],
+    "0x58000302" : [
+      [ "inputMatrix" ],
+      [ "outputMatrix" ],
+      "inverseMatrix"
+    ]
+  }
+}

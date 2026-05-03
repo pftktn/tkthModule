@@ -160,7 +160,18 @@ class itemBase(QtWidgets.QTreeWidgetItem) :
       if itm is not None : self.deleteUUIDTable(itm)
     return super().takeChildren()
     
-  def getObject(self) : 
+  def getObject(self, fnRefList=None) : 
+    if self.__uniqueUUID is None : return None
+    mobj = self.__uniqueUUID.getMObject(fnRefList=fnRefList)
+    if mobj is None : return None
+    if self.isDagNode : 
+      fn = OpenMaya.MFnDagNode()
+      fn.setObject(mobj)
+      return fn.getPath()
+    else : 
+      return mobj
+
+  def getObjectByName(self) : 
     if self.itemUniqueName is None : return None    
     if self.mfnType is None : return None
     if self.isDagNode : return getMDagPathByName(self.itemUniqueName)
@@ -701,6 +712,9 @@ class itemMObject(itemBase) :
     s = u'MObject type=' + str(mobj.apiType()) + self.addStatusBarMessageByMFn(self.getMFn())
     return s
 
+
+subTargetPlugDict = None
+subTargetPlugPluginDependNodeDict = None
 class itemConnection(itemBase) : 
   __plugName = None
   __plugPath = None
@@ -739,19 +753,182 @@ class itemConnection(itemBase) :
     super(__class__, self).__init__(itemFlags=QtCore.Qt.ItemFlag.ItemIsEnabled|QtCore.Qt.ItemFlag.ItemIsSelectable, itemType=itemBase.enConnection, isDagNode=dgNd, itemUniqueName=unqNm, itemName=nm, mfnType=tgtObj.apiType())
     if depth < 5 : self.addSubTargetPlug(targetPlug, depth=depth + 1)
   
-  def addSubTargetPlug(self, targetPlug, depth=100) : 
+  def getCheckSubPlug(self, targetNode, targetIsSource=True) : 
+    if item.subTargetPlugDict is None or item.subTargetPlugPluginDependNodeDict is None : 
+      item.subTargetPlugDict = dict()
+      item.subTargetPlugPluginDependNodeDict = dict()
+      pth = pathlib.Path(__file__).parent.as_posix() + u'/subtargetplug.json'
+      if pathlib.Path(pth).is_file() : 
+        dct = loadJSON(pth)
+        dctKeyLst = list(dct.keys())
+        for k in dctKeyLst : 
+          if k == u'kPluginDependNode' : 
+            subDct = dct[k]
+            subDctKeyLst = list(subDct.keys())
+            for tpIdStr in subDctKeyLst : 
+              tpId = int(tpIdStr, 0)
+              item.subTargetPlugPluginDependNodeDict[tpId] = subDct[tpIdStr]
+          elif k in OpenMaya.MFn.__dict__ : 
+            item.subTargetPlugDict[OpenMaya.MFn.__dict__[k]] = dct[k]
+      #print(item.subTargetPlugDict)
+      #print(item.subTargetPlugPluginDependNodeDict)
+
     chkPlgLst = list()
-    targetNode = targetPlug.node()
     fn = OpenMaya.MFnDependencyNode(targetNode)
-    if self.targetIsSource : 
-      if targetNode.hasFn(OpenMaya.MFn.kDecomposeMatrix) : 
+    if targetNode.hasFn(OpenMaya.MFn.kPluginDependNode) : 
+      tpId = fn.typeId.id()
+      if tpId == 0x80088 : # bifrostBoard
+        attrCnt = fn.attributeCount()
+        for attrIdx in range(attrCnt) : 
+          try : 
+            attrObj = fn.attribute(attrIdx)
+            fnAttr = OpenMaya.MFnAttribute(attrObj)
+            if fnAttr.dynamic : chkPlgLst.append(fn.findPlug(attrObj, True))
+          except : 
+            pass
+      elif tpId in item.subTargetPlugPluginDependNodeDict : 
+        if targetIsSource : 
+          nmLst = item.subTargetPlugPluginDependNodeDict[tpId][0]
+        else : 
+          nmLst = item.subTargetPlugPluginDependNodeDict[tpId][1]
+        for nm in nmLst : 
+          plg = fn.findPlug(nm, True)
+          if plg is None or plg.isNull : continue
+          chkPlgLst.append(plg)
+    else : 
+      apiTp = fn.object().apiType()
+      nmLst = None
+      if apiTp in item.subTargetPlugDict : 
+        if targetIsSource : 
+          nmLst = item.subTargetPlugDict[apiTp][0]
+        else : 
+          nmLst = item.subTargetPlugDict[apiTp][1]
+        for nm in nmLst : 
+          plg = fn.findPlug(nm, True)
+          if plg is None or plg.isNull : continue
+          chkPlgLst.append(plg)
+    
+    return chkPlgLst
+    '''
+    if targetNode.hasFn(OpenMaya.MFn.kComposeMatrix) : 
+      if targetIsSource : 
+        chkPlgLst.append(fn.findPlug(u'inputTranslate', True))
+        chkPlgLst.append(fn.findPlug(u'inputRotate', True))
+        chkPlgLst.append(fn.findPlug(u'inputScale', True))
+        chkPlgLst.append(fn.findPlug(u'inputShear', True))
+        chkPlgLst.append(fn.findPlug(u'inputQuat', True))
+      else :
+        chkPlgLst.append(fn.findPlug(u'outputMatrix', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kDecomposeMatrix) : 
+      if targetIsSource : 
         chkPlgLst.append(fn.findPlug(u'inputMatrix', True))
-      elif targetNode.hasFn(OpenMaya.MFn.kMatrixMult) : 
+      else : 
+        chkPlgLst.append(fn.findPlug(u'outputTranslate', True))
+        chkPlgLst.append(fn.findPlug(u'outputRotate', True))
+        chkPlgLst.append(fn.findPlug(u'outputScale', True))
+        chkPlgLst.append(fn.findPlug(u'outputShear', True))
+        chkPlgLst.append(fn.findPlug(u'outputQuat', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kMatrixMult) : 
+      if targetIsSource : 
         chkPlgLst.append(fn.findPlug(u'matrixIn', True))
-      elif fn.typeId.id() == 0x58000302 : # inverseMatrix
-        chkPlgLst.append(fn.findPlug(u'inputMatrix', True))
-      elif targetNode.hasFn(OpenMaya.MFn.kMatrixWtAdd) : 
+      else :
+        chkPlgLst.append(fn.findPlug(u'matrixSum', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kMatrixWtAdd) : 
+      if targetIsSource : 
         chkPlgLst.append(fn.findPlug(u'wtMatrix', True))
+      else :
+        chkPlgLst.append(fn.findPlug(u'matrixSum', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kExpression) : 
+      if targetIsSource : 
+        chkPlgLst.append(fn.findPlug(u'input', True))
+      else : 
+        chkPlgLst.append(fn.findPlug(u'output', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kMultiplyDivide) : 
+      if targetIsSource : 
+        chkPlgLst.append(fn.findPlug(u'input1', True))
+        chkPlgLst.append(fn.findPlug(u'input2', True))
+      else : 
+        chkPlgLst.append(fn.findPlug(u'output', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kPairBlend) : 
+      if targetIsSource : 
+        chkPlgLst.append(fn.findPlug(u'inTranslate1', True))
+        chkPlgLst.append(fn.findPlug(u'inRotate1', True))
+        chkPlgLst.append(fn.findPlug(u'inTranslate2', True))
+        chkPlgLst.append(fn.findPlug(u'inRotate2', True))
+      else : 
+        chkPlgLst.append(fn.findPlug(u'outTranslate', True))
+        chkPlgLst.append(fn.findPlug(u'outRotate', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kReverse) : 
+      if targetIsSource : 
+        chkPlgLst.append(fn.findPlug(u'input', True))
+      else : 
+        chkPlgLst.append(fn.findPlug(u'output', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kPlusMinusAverage) : 
+      if targetIsSource : 
+        chkPlgLst.append(fn.findPlug(u'input1D', True))
+        chkPlgLst.append(fn.findPlug(u'input2D', True))
+        chkPlgLst.append(fn.findPlug(u'input3D', True))
+      else : 
+        chkPlgLst.append(fn.findPlug(u'output1D', True))
+        chkPlgLst.append(fn.findPlug(u'output2D', True))
+        chkPlgLst.append(fn.findPlug(u'output3D', True))
+    elif targetNode.hasFn(OpenMaya.MFn.kPluginDependNode) : 
+      tpId = fn.typeId.id()
+      if tpId == 0x58000081 : # quatToEuler
+        if targetIsSource : 
+          chkPlgLst.append(fn.findPlug(u'inputQuat', True))
+        else : 
+          chkPlgLst.append(fn.findPlug(u'outputRotate', True))
+      elif tpId == 0x58000093 : # quatSlerp
+        if targetIsSource : 
+          chkPlgLst.append(fn.findPlug(u'input1Quat', True))
+          chkPlgLst.append(fn.findPlug(u'input2Quat', True))
+        else : 
+          chkPlgLst.append(fn.findPlug(u'outputQuat', True))
+      elif tpId == 0x58000090 : # quatAdd
+        if targetIsSource : 
+          chkPlgLst.append(fn.findPlug(u'input1Quat', True))
+          chkPlgLst.append(fn.findPlug(u'input2Quat', True))
+        else : 
+          chkPlgLst.append(fn.findPlug(u'outputQuat', True))
+      elif tpId == 0x58000080 : # eulerToQuat
+        if targetIsSource : 
+          chkPlgLst.append(fn.findPlug(u'inputRotate', True))
+        else : 
+          chkPlgLst.append(fn.findPlug(u'outputQuat', True))
+      elif tpId == 0x58000302 : # inverseMatrix
+        if targetIsSource : 
+          chkPlgLst.append(fn.findPlug(u'inputMatrix', True))
+        else :
+          chkPlgLst.append(fn.findPlug(u'outputMatrix', True))
+      elif tpId == 0x816840 : # floatMath
+        if targetIsSource : 
+          chkPlgLst.append(fn.findPlug(u'floatA', True))
+          chkPlgLst.append(fn.findPlug(u'floatB', True))
+        else :
+          chkPlgLst.append(fn.findPlug(u'outFloat', True))
+      elif tpId == 0x816836 : # floatLogic
+        if targetIsSource : 
+          chkPlgLst.append(fn.findPlug(u'floatA', True))
+          chkPlgLst.append(fn.findPlug(u'floatB', True))
+        else :
+          chkPlgLst.append(fn.findPlug(u'outBool', True))
+      elif tpId == 0x80088 : # bifrostBoard
+        attrCnt = fn.attributeCount()
+        for attrIdx in range(attrCnt) : 
+          try : 
+            attrObj = fn.attribute(attrIdx)
+            fnAttr = OpenMaya.MFnAttribute(attrObj)
+            if fnAttr.dynamic : chkPlgLst.append(fn.findPlug(attrObj, True))
+          except : 
+            pass
+    return chkPlgLst
+    '''
+  
+  def addSubTargetPlug(self, targetPlug, depth=100) : 
+    targetNode = targetPlug.node()
+    chkPlgLst = self.getCheckSubPlug(targetNode, targetIsSource=self.targetIsSource)
+    if self.targetIsSource : 
       for chkPlg in chkPlgLst : 
         chkSrcPlg = chkPlg.source()
         if chkSrcPlg is not None and chkSrcPlg.isNull == False : 
@@ -773,22 +950,7 @@ class itemConnection(itemBase) :
                 if chkSrcPlg is not None and chkSrcPlg.isNull == False : 
                   chkSrcItm = itemConnection(targetPlug, chkSrcPlg, targetIsSource=self.targetIsSource, depth=depth+1)
                   self.addChild(chkSrcItm)
-
     else : 
-      if targetNode.hasFn(OpenMaya.MFn.kComposeMatrix) : 
-        chkPlgLst.append(fn.findPlug(u'outputMatrix', True))
-      elif targetNode.hasFn(OpenMaya.MFn.kDecomposeMatrix) : 
-        chkPlgLst.append(fn.findPlug(u'outputTranslate', True))
-        chkPlgLst.append(fn.findPlug(u'outputRotate', True))
-        chkPlgLst.append(fn.findPlug(u'outputScale', True))
-        chkPlgLst.append(fn.findPlug(u'outputShear', True))
-        chkPlgLst.append(fn.findPlug(u'outputQuat', True))
-      elif targetNode.hasFn(OpenMaya.MFn.kMatrixMult) : 
-        chkPlgLst.append(fn.findPlug(u'matrixSum', True))
-      elif fn.typeId.id() == 0x58000302 : # inverseMatrix
-        chkPlgLst.append(fn.findPlug(u'outputMatrix', True))
-      elif targetNode.hasFn(OpenMaya.MFn.kMatrixWtAdd) : 
-        chkPlgLst.append(fn.findPlug(u'matrixSum', True))
       for chkPlg in chkPlgLst : 
         chkDstPlgLst = chkPlg.destinations()
         if chkDstPlgLst is not None : 
